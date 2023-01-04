@@ -10,6 +10,7 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
+import models
 
 
 class HBNBCommand(cmd.Cmd):
@@ -132,9 +133,11 @@ class HBNBCommand(cmd.Cmd):
             else:
                 paramDict[param[0]] = eval(param[1])
 
-        '''new_instance = HBNBCommand.classes[args[0]](**paramDict)'''
-        new_instance = eval(args[0])(**paramDict)
-        storage.new(new_instance)
+        if paramDict == {}:
+            new_instance = eval(args[0])()
+        else:
+            new_instance = eval(args[0])(**paramDict)
+            storage.new(new_instance)
         print(new_instance.id)
         storage.save()
 
@@ -218,12 +221,11 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
+            for key, val in storage.all(eval(args)).items():
+                print_list.append(val.__str__())
         else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
+            for key, val in storage.all().items():
+                print_list.append(val.__str__())
 
         print(print_list)
 
