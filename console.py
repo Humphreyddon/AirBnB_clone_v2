@@ -133,11 +133,8 @@ class HBNBCommand(cmd.Cmd):
             else:
                 paramDict[param[0]] = eval(param[1])
 
-        if paramDict == {}:
-            new_instance = eval(args[0])()
-        else:
-            new_instance = eval(args[0])(**paramDict)
-            storage.new(new_instance)
+        new_instance = eval(args[0])(**paramDict)
+        storage.new(new_instance)
         print(new_instance.id)
         storage.save()
 
