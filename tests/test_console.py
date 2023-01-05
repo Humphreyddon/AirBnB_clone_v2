@@ -91,7 +91,7 @@ class TestHBNBCommand(unittest.TestCase):
         """Test that EOF quits."""
         with patch("sys.stdout", new=StringIO()) as f:
             self.assertTrue(self.HBNB.onecmd("EOF"))
-|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\2888999999999999999999999999999999999999999999999999999999999999999999==============
+
     def test_create_errors(self):
         """Test create command errors."""
         with patch("sys.stdout", new=StringIO()) as f:
