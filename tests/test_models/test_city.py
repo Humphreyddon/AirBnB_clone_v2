@@ -176,6 +176,118 @@ class TestCity(unittest.TestCase):
         self.assertEqual(self.city.name, city_dict["name"])
         self.assertEqual(self.city.state_id, city_dict["state_id"])
 
+    @classmethod
+    def setUpClass1(cls):
+        """City testing setup.
+
+        Temporarily renames any existing file.json.
+        Resets FileStorage objects dictionary.
+        Creates FileStorage, DBStorage, City and State instances for testing.
+        """
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
+            pass
+        FileStorage._FileStorage__objects = {}
+        cls.filestorage = FileStorage()
+        cls.state = State(name="California")
+        cls.city = City(name="San Francisco", state_id=cls.state.id)
+
+        if type(models.storage) == DBStorage:
+            cls.dbstorage = DBStorage()
+            Base.metadata.create_all(cls.dbstorage._DBStorage__engine)
+            Session = sessionmaker(bind=cls.dbstorage._DBStorage__engine)
+            cls.dbstorage._DBStorage__session = Session()
+
+    @classmethod
+    def tearDownClass1(cls):
+        """City testing teardown.
+
+        Restore original file.json.
+        Delete the FileStorage, DBStorage, City and State test instances.
+        """
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+        del cls.state
+        del cls.city
+        del cls.filestorage
+        if type(models.storage) == DBStorage:
+            cls.dbstorage._DBStorage__session.close()
+            del cls.dbstorage
+
+    def test_pep81(self):
+        """Test pep8 styling."""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(["models/city.py"])
+        self.assertEqual(p.total_errors, 0, "fix pep8")
+
+    def test_docstrings1(self):
+        """Check for docstrings."""
+        self.assertIsNotNone(City.__doc__)
+
+    def test_attributes1(self):
+        """Check for attributes."""
+        ct = City()
+        self.assertEqual(str, type(ct.id))
+        self.assertEqual(datetime, type(ct.created_at))
+        self.assertEqual(datetime, type(ct.updated_at))
+        self.assertTrue(hasattr(ct, "__tablename__"))
+        self.assertTrue(hasattr(ct, "name"))
+        self.assertTrue(hasattr(ct, "state_id"))
+
+    def test_is_subclass1(self):
+        """Check that City is a subclass of BaseModel."""
+        self.assertTrue(issubclass(City, BaseModel))
+
+    def test_init1(self):
+        """Test initialization."""
+        self.assertIsInstance(self.city, City)
+
+    def test_two_models_are_unique1(self):
+        """Test that different City instances are unique."""
+        ct = City()
+        self.assertNotEqual(self.city.id, ct.id)
+        self.assertLess(self.city.created_at, ct.created_at)
+        self.assertLess(self.city.updated_at, ct.updated_at)
+
+    def test_init_args_kwargs1(self):
+        """Test initialization with args and kwargs."""
+        dt = datetime.utcnow()
+        ct = City("1", id="5", created_at=dt.isoformat())
+        self.assertEqual(ct.id, "5")
+        self.assertEqual(ct.created_at, dt)
+
+    def test_str1(self):
+        """Test __str__ representation."""
+        s = self.city.__str__()
+        self.assertIn("[City] ({})".format(self.city.id), s)
+        self.assertIn("'id': '{}'".format(self.city.id), s)
+        self.assertIn("'created_at': {}".format(
+            repr(self.city.created_at)), s)
+        self.assertIn("'updated_at': {}".format(
+            repr(self.city.updated_at)), s)
+        self.assertIn("'name': '{}'".format(self.city.name), s)
+        self.assertIn("'state_id': '{}'".format(self.city.state_id), s)
+
+    def test_to_dict1(self):
+        """Test to_dict method."""
+        city_dict = self.city.to_dict()
+        self.assertEqual(dict, type(city_dict))
+        self.assertEqual(self.city.id, city_dict["id"])
+        self.assertEqual("City", city_dict["__class__"])
+        self.assertEqual(self.city.created_at.isoformat(),
+                         city_dict["created_at"])
+        self.assertEqual(self.city.updated_at.isoformat(),
+                         city_dict["updated_at"])
+        self.assertEqual(self.city.name, city_dict["name"])
+        self.assertEqual(self.city.state_id, city_dict["state_id"])
+
 
 if __name__ == "__main__":
     unittest.main()
