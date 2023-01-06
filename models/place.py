@@ -58,7 +58,7 @@ class Place(BaseModel, Base):
             amenity_list = []
             for amenity in list(storage.all(Amenity).values()):
                 if amenity.id in self.amenity_ids:
-                    amenity_list.appent(amenity)
+                    amenity_list.append(amenity)
             return amenity_list
 
         @amenities.setter

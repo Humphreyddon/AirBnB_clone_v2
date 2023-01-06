@@ -56,6 +56,7 @@ class BaseModel:
         return dictionary
 
     def delete(self):
+        """  deletes obj from __objects if it’s inside """
         obj = models.storage.all()
         for key, val in obj.items():
             if (self is val):
