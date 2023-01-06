@@ -173,6 +173,120 @@ class TestUser(unittest.TestCase):
         self.assertEqual(self.user.email, user_dict["email"])
         self.assertEqual(self.user.password, user_dict["password"])
 
+    @classmethod
+    def setUpClass1(cls):
+        """User testing setup.
+
+        Temporarily renames any existing file.json.
+        Resets FileStorage objects dictionary.
+        Creates FileStorage, DBStorage and User instances for testing.
+        """
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
+            pass
+        FileStorage._FileStorage__objects = {}
+        cls.filestorage = FileStorage()
+        cls.user = User(email="poppy@holberton.com", password="betty98")
+
+        if type(models.storage) == DBStorage:
+            cls.dbstorage = DBStorage()
+            Base.metadata.create_all(cls.dbstorage._DBStorage__engine)
+            Session = sessionmaker(bind=cls.dbstorage._DBStorage__engine)
+            cls.dbstorage._DBStorage__session = Session()
+
+    @classmethod
+    def tearDownClass1(cls):
+        """User testing teardown.
+
+        Restore original file.json.
+        Delete the FileStorage, DBStorage and User test instances.
+        """
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+        del cls.user
+        del cls.filestorage
+        if type(models.storage) == DBStorage:
+            cls.dbstorage._DBStorage__session.close()
+            del cls.dbstorage
+
+    def test_pep81(self):
+        """Test pep8 styling."""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(["models/user.py"])
+        self.assertEqual(p.total_errors, 0, "fix pep8")
+
+    def test_docstrings1(self):
+        """Check for docstrings."""
+        self.assertIsNotNone(User.__doc__)
+
+    def test_attributes1(self):
+        """Check for attributes."""
+        us = User(email="a", password="a")
+        self.assertEqual(str, type(us.id))
+        self.assertEqual(datetime, type(us.created_at))
+        self.assertEqual(datetime, type(us.updated_at))
+        self.assertTrue(hasattr(us, "__tablename__"))
+        self.assertTrue(hasattr(us, "email"))
+        self.assertTrue(hasattr(us, "password"))
+        self.assertTrue(hasattr(us, "first_name"))
+        self.assertTrue(hasattr(us, "last_name"))
+        self.assertTrue(hasattr(us, "places"))
+        self.assertTrue(hasattr(us, "reviews"))
+
+    def test_is_subclass1(self):
+        """Check that User is a subclass of BaseModel."""
+        self.assertTrue(issubclass(User, BaseModel))
+
+    def test_init1(self):
+        """Test initialization."""
+        self.assertIsInstance(self.user, User)
+
+    def test_two_models_are_unique1(self):
+        """Test that different User instances are unique."""
+        us = User(email="a", password="a")
+        self.assertNotEqual(self.user.id, us.id)
+        self.assertLess(self.user.created_at, us.created_at)
+        self.assertLess(self.user.updated_at, us.updated_at)
+
+    def test_init_args_kwargs1(self):
+        """Test initialization with args and kwargs."""
+        dt = datetime.utcnow()
+        st = User("1", id="5", created_at=dt.isoformat())
+        self.assertEqual(st.id, "5")
+        self.assertEqual(st.created_at, dt)
+
+    def test_str1(self):
+        """Test __str__ representation."""
+        s = self.user.__str__()
+        self.assertIn("[User] ({})".format(self.user.id), s)
+        self.assertIn("'id': '{}'".format(self.user.id), s)
+        self.assertIn("'created_at': {}".format(
+            repr(self.user.created_at)), s)
+        self.assertIn("'updated_at': {}".format(
+            repr(self.user.updated_at)), s)
+        self.assertIn("'email': '{}'".format(self.user.email), s)
+        self.assertIn("'password': '{}'".format(self.user.password), s)
+
+    def test_to_dict1(self):
+        """Test to_dict method."""
+        user_dict = self.user.to_dict()
+        self.assertEqual(dict, type(user_dict))
+        self.assertEqual(self.user.id, user_dict["id"])
+        self.assertEqual("User", user_dict["__class__"])
+        self.assertEqual(self.user.created_at.isoformat(),
+                         user_dict["created_at"])
+        self.assertEqual(self.user.updated_at.isoformat(),
+                         user_dict["updated_at"])
+        self.assertEqual(self.user.email, user_dict["email"])
+        self.assertEqual(self.user.password, user_dict["password"])
+
 
 if __name__ == "__main__":
     unittest.main()
